@@ -83,6 +83,11 @@ function activate(context) {
         labelExcludeBlank = `${0} - ${lineCount - 1 - blankLineCount}`;
       break;
 
+      case `InsertStartOne`:
+        labelIncludeBlank = `${1} - ${lineCount}`;
+        labelExcludeBlank = `${1} - ${lineCount - blankLineCount}`;
+      break;
+
       case `CopyFileLineNumer`:
         labelIncludeBlank = `${select.start.line + 1} - ${select.end.line + 1}`;
         labelExcludeBlank = `${select.start.line + 1} - ${select.end.line + 1}`;
@@ -111,107 +116,76 @@ function activate(context) {
 
       editor.edit((ed) => {
 
-        // const editorSelectionsLoopInsertLineNumber = () => {
+        const editorSelectionsLoopInsertLineNumber = (option, func) => {
+          editorSelectionsLoop((range, text) => {
+            const lines = text.split(`\n`);
+            const maxLength = getNumberMaxLength(lines, 0);
+            const newLines = [];
+            let minIndent = 0;
+            if ([pickFormatFull, pickFormatIndent].includes(item)) {
+              minIndent = getMinIndent(lines);
+            }
+            let initLineNumber =
+              option.initialValue === 'Zero' ? 0
+              : option.initialValue === 'One' ? 1
+              : option.initialValue === 'LineNumber' ? select.start.line + 1
+              : (() => { throw new Error('editorSelectionsLoopInsertLineNumber') })()
+            ;
+            let lineNumber = initLineNumber;
+            lines.forEach((line, i) => {
+              if (item === pickFormatFull) {
+                if (line.trim() === '') { return; }
+                line = _deleteFirst(line, minIndent);
+              } else if (item === pickFormatBlankLine) {
+                if (line.trim() === '') { return; }
+              } else if (item === pickFormatIndent) {
+                line = _deleteFirst(line, minIndent)
+              }
+              if (option.isIncrementBlankLine) {
+                lineNumber = initLineNumber + i;
+                newLines.push(
+                  `${lineNumber.toString().padStart(maxLength)}: ${line}`
+                );
+              } else {
+                newLines.push(
+                  `${lineNumber.toString().padStart(maxLength)}: ${line}`
+                );
+                lineNumber += 1;
+              }
+            });
+            func(range, newLines);
+          });
+        }
 
-        // }
+        const insertLineNumber = (option) => {
+          editorSelectionsLoopInsertLineNumber(option,
+            (range, newLines) => {
+              ed.replace(range, newLines.join("\n"));
+            }
+          );
+        }
 
-        // const insertLineNumber = (initialValue, isIncrementBlankLine) => {
-
-        // }
-
-        // const insertCopyLineNumber = (initialValue, isIncrementBlankLine) => {
-
-        // }
-
-        // const insertStart = (initialValue) => {
-        //   editorSelectionsLoop((range, text) => {
-        //     const lines = text.split(`\n`);
-        //     const maxLength = getNumberMaxLength(lines, 0);
-        //     const newLines = [];
-        //     let minIndent = 0;
-        //     if ([pickFormatFull, pickFormatIndent].includes(item)) {
-        //       minIndent = getMinIndent(lines);
-        //     }
-        //     let i = initialValue;
-        //     lines.forEach((line) => {
-        //       if (item === pickFormatFull) {
-        //         if (line.trim() === '') { return; }
-        //         line = _deleteFirst(line, minIndent);
-        //       } else if (item === pickFormatBlankLine) {
-        //         if (line.trim() === '') { return; }
-        //       } else if (item === pickFormatIndent) {
-        //         line = _deleteFirst(line, minIndent)
-        //       }
-        //       newLines.push(
-        //         `${i.toString().padStart(maxLength)}: ${line}`
-        //       );
-        //       i += 1;
-        //     });
-        //     ed.replace(range, newLines.join("\n"));
-        //   });
-        // }
+        const insertCopyLineNumber = (option) => {
+          let copyText = '';
+          editorSelectionsLoopInsertLineNumber(option,
+            (range, newLines) => {
+              copyText += newLines.join("\n") + "\n";
+            }
+          );
+          clipboardy.writeSync(copyText);
+        }
 
         switch (commandName) {
           case `InsertStartZero`:
-            editorSelectionsLoop((range, text) => {
-              const lines = text.split(`\n`);
-              const maxLength = getNumberMaxLength(lines, 0);
-              const newLines = [];
-              let minIndent = 0;
-              if ([pickFormatFull, pickFormatIndent].includes(item)) {
-                minIndent = getMinIndent(lines);
-              }
-              let i = 0;
-              lines.forEach((line) => {
-                if (item === pickFormatFull) {
-                  if (line.trim() === '') { return; }
-                  line = _deleteFirst(line, minIndent);
-                } else if (item === pickFormatBlankLine) {
-                  if (line.trim() === '') { return; }
-                } else if (item === pickFormatIndent) {
-                  line = _deleteFirst(line, minIndent)
-                }
-                newLines.push(
-                  `${i.toString().padStart(maxLength)}: ${line}`
-                );
-                i += 1;
-              });
-              ed.replace(range, newLines.join("\n"));
-            });
+            insertLineNumber({ isIncrementBlankLine: false, initialValue: 'Zero', });
             break;
 
-          // case `InsertStartOne`:
-          //   insertStart(1);
-          //   break;
+          case `InsertStartOne`:
+            insertLineNumber({ isIncrementBlankLine: false, initialValue: 'One', });
+            break;
 
           case `CopyFileLineNumer`:
-            let copyText = "";
-            editorSelectionsLoop((range, text, select) => {
-              const lines = text.split(`\n`);
-              const start = select.start.line + 1;
-              const maxLength = getNumberMaxLength(lines, start);
-              const newLines = [];
-              let minIndent = 0;
-              if ([pickFormatFull, pickFormatIndent].includes(item)) {
-                minIndent = getMinIndent(lines);
-              }
-              lines.forEach((line, i) => {
-                if (item === pickFormatFull) {
-                  if (line.trim() === '') { return; }
-                  line = _deleteFirst(line, minIndent);
-                } else if (item === pickFormatBlankLine) {
-                  if (line.trim() === '') { return; }
-                } else if (item === pickFormatIndent) {
-                  line = _deleteFirst(line, minIndent)
-                }
-                const number = start + i;
-                newLines.push(
-                  `${number.toString().padStart(maxLength)}: ${line}`
-                );
-              });
-              copyText += newLines.join("\n") + "\n";
-            });
-            clipboardy.writeSync(copyText);
+            insertCopyLineNumber({ isIncrementBlankLine: true, initialValue: 'LineNumber', });
             break;
 
           default:
