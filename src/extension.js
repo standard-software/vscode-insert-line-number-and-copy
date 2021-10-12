@@ -3,6 +3,9 @@ const clipboardy = require("clipboardy");
 const {
   _deleteFirst,
   _trimFirst,
+  _includeCount,
+  _indexOfLast,
+  _subIndex, _subLength,
 } = require('./parts/parts.js')
 
 function activate(context) {
@@ -13,6 +16,7 @@ function activate(context) {
       vscode.window.showInformationMessage(`No editor is active`);
       return;
     }
+    console.log({editor});
 
     const editorSelectionsLoop = (func) => {
       editor.selections.forEach((select) => {
@@ -25,18 +29,6 @@ function activate(context) {
         const text = editor.document.getText(range);
         func(range, text, select);
       });
-    };
-
-    const getNumberMaxLength = (lines, start) => {
-      let maxLength = 0;
-      lines.forEach((line, i) => {
-        const number = start + i;
-        const length = number.toString().length;
-        if (maxLength < length) {
-          maxLength = length;
-        }
-      });
-      return maxLength;
     };
 
     const getIndent = (line) => {
@@ -72,6 +64,43 @@ function activate(context) {
       return blankLineCount;
     };
 
+    const getLinebreakInfo = (select) => {
+      const range = new vscode.Range(
+        select.start.line,
+        0,
+        select.end.line,
+        select.end.character
+      );
+      const text = editor.document.getText(range);
+      const crlf = _includeCount(text, '\r\n');
+      const cr = _includeCount(text, '\r');
+      const lf = _includeCount(text, '\n');
+      let most = '';
+      if (crlf < cr) {
+        most = 'cr';
+        if (cr < lf) {
+          most = 'lf';
+        }
+      } else {
+        most = 'crlf';
+        if (crlf < lf) {
+          most = 'lf';
+        }
+      }
+      const code =
+        most === 'crlf' ? '\r\n'
+        : most === 'cr' ? '\r'
+        : most === 'lf' ? '\n'
+        : '';
+      return {
+        crlf,
+        cr,
+        lf,
+        most,
+        code,
+      }
+    }
+
     const select = editor.selections[0];
     let labelIncludeBlank = '';
     let labelExcludeBlank = '';
@@ -79,15 +108,18 @@ function activate(context) {
     const blankLineCount = getBlankLineCount(select);
     switch (commandName) {
       case `InsertStartZero`:
+      case `CopyStartZero`:
         labelIncludeBlank = `${0} - ${lineCount - 1}`;
         labelExcludeBlank = `${0} - ${lineCount - 1 - blankLineCount}`;
       break;
 
       case `InsertStartOne`:
+      case `CopyStartOne`:
         labelIncludeBlank = `${1} - ${lineCount}`;
         labelExcludeBlank = `${1} - ${lineCount - blankLineCount}`;
       break;
 
+      case `InsertFileLineNumer`:
       case `CopyFileLineNumer`:
         labelIncludeBlank = `${select.start.line + 1} - ${select.end.line + 1}`;
         labelExcludeBlank = `${select.start.line + 1} - ${select.end.line + 1}`;
@@ -119,7 +151,6 @@ function activate(context) {
         const editorSelectionsLoopInsertLineNumber = (option, func) => {
           editorSelectionsLoop((range, text) => {
             const lines = text.split(`\n`);
-            const maxLength = getNumberMaxLength(lines, 0);
             const newLines = [];
             let minIndent = 0;
             if ([pickFormatFull, pickFormatIndent].includes(item)) {
@@ -131,7 +162,24 @@ function activate(context) {
               : option.initialValue === 'LineNumber' ? select.start.line + 1
               : (() => { throw new Error('editorSelectionsLoopInsertLineNumber') })()
             ;
+
             let lineNumber = initLineNumber;
+            lines.forEach((line, i) => {
+              if (item === pickFormatFull) {
+                if (line.trim() === '') { return; }
+              } else if (item === pickFormatBlankLine) {
+                if (line.trim() === '') { return; }
+              } else if (item === pickFormatIndent) {
+              }
+              if (option.isIncrementBlankLine) {
+                lineNumber = initLineNumber + i;
+              } else {
+                lineNumber += 1;
+              }
+            });
+            const maxLength = lineNumber.toString().length;
+
+            lineNumber = initLineNumber;
             lines.forEach((line, i) => {
               if (item === pickFormatFull) {
                 if (line.trim() === '') { return; }
@@ -166,10 +214,30 @@ function activate(context) {
         }
 
         const insertCopyLineNumber = (option) => {
+          const linebreakInfo = getLinebreakInfo(editor.selections[0]);
+          let linebreak = linebreakInfo.code
+          if (linebreak === '') { linebreak = '\n' }
+
           let copyText = '';
+          if (option.initialValue === 'LineNumber') {
+            let pathDelimiterIndex = _indexOfLast(editor.document.fileName, '\\');
+            if (pathDelimiterIndex === -1) {
+              pathDelimiterIndex = _indexOfLast(editor.document.fileName, '/');
+            }
+            if ([-1, 0].includes(pathDelimiterIndex)) {
+              copyText = editor.document.fileName + linebreak;
+            } else {
+              copyText =
+                _subIndex(editor.document.fileName, 0, pathDelimiterIndex)
+                + linebreak
+                + _subLength(editor.document.fileName, pathDelimiterIndex + 1)
+                + linebreak
+            }
+
+          }
           editorSelectionsLoopInsertLineNumber(option,
             (range, newLines) => {
-              copyText += newLines.join("\n") + "\n";
+              copyText += newLines.join("\n") + linebreak;
             }
           );
           clipboardy.writeSync(copyText);
@@ -182,6 +250,18 @@ function activate(context) {
 
           case `InsertStartOne`:
             insertLineNumber({ isIncrementBlankLine: false, initialValue: 'One', });
+            break;
+
+          case `InsertFileLineNumer`:
+            insertLineNumber({ isIncrementBlankLine: true, initialValue: 'LineNumber', });
+            break;
+
+          case `CopyStartZero`:
+            insertCopyLineNumber({ isIncrementBlankLine: false, initialValue: 'Zero', });
+            break;
+
+          case `CopyStartOne`:
+            insertCopyLineNumber({ isIncrementBlankLine: false, initialValue: 'One', });
             break;
 
           case `CopyFileLineNumer`:
@@ -197,32 +277,35 @@ function activate(context) {
 
   };
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      `InsertLineNumberAndCopy.InsertStartZero`,
-      () => {
-        extensionMain(`InsertStartZero`);
-      }
-    )
-  );
+  context.subscriptions.push(vscode.commands.registerCommand(
+    `InsertLineNumberAndCopy.InsertStartZero`,
+    () => { extensionMain(`InsertStartZero`); }
+  ));
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      `InsertLineNumberAndCopy.InsertStartOne`,
-      () => {
-        extensionMain(`InsertStartOne`);
-      }
-    )
-  );
+  context.subscriptions.push(vscode.commands.registerCommand(
+    `InsertLineNumberAndCopy.InsertStartOne`,
+    () => { extensionMain(`InsertStartOne`); }
+  ));
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      `InsertLineNumberAndCopy.CopyFileLineNumer`,
-      () => {
-        extensionMain(`CopyFileLineNumer`);
-      }
-    )
-  );
+  context.subscriptions.push(vscode.commands.registerCommand(
+    `InsertLineNumberAndCopy.InsertFileLineNumer`,
+    () => { extensionMain(`InsertFileLineNumer`); }
+  ));
+
+  context.subscriptions.push(vscode.commands.registerCommand(
+    `InsertLineNumberAndCopy.CopyStartZero`,
+    () => { extensionMain(`CopyStartZero`); }
+  ));
+
+  context.subscriptions.push(vscode.commands.registerCommand(
+    `InsertLineNumberAndCopy.CopyStartOne`,
+    () => { extensionMain(`CopyStartOne`); }
+  ));
+
+  context.subscriptions.push(vscode.commands.registerCommand(
+    `InsertLineNumberAndCopy.CopyFileLineNumer`,
+    () => { extensionMain(`CopyFileLineNumer`); }
+  ));
 }
 
 function deactivate() {}

@@ -15,9 +15,11 @@ const { _deleteLast } = require('./_deleteLast.js')
 const { _trimFirst } = require('./_trimFirst.js')
 const { _trimLast } = require('./_trimLast.js')
 const { _subLength } = require('./_subLength.js')
+const { _subIndex } = require('./_subIndex.js')
 const { _subFirst } = require('./_subFirst.js')
 const { _subLast } = require('./_subLast.js')
 const { _insert } = require('./_insert.js')
+const { _includeCount } = require('./_includeCount.js')
 
 module.exports = {
   isUndefined, isBoolean, isNumber,
@@ -28,7 +30,8 @@ module.exports = {
   _deleteIndex, _deleteLength,
   _deleteFirst, _deleteLast,
   _trimFirst, _trimLast,
-  _subLength,
+  _subLength, _subIndex,
   _subFirst, _subLast,
   _insert,
+  _includeCount,
 }

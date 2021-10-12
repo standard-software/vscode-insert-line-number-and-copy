@@ -2,7 +2,7 @@
   "name": "vscode-insert-line-number-and-copy",
   "displayName": "Insert Line Number And Copy",
   "description": "Insert line numbers in text and copy.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "publisher": "SatoshiYamamoto",
   "author": {
     "name": "Satoshi Yamamoto",
@@ -26,6 +26,10 @@
   ],
   "activationEvents": [
     "onCommand:InsertLineNumberAndCopy.InsertStartZero",
+    "onCommand:InsertLineNumberAndCopy.InsertStartOne",
+    "onCommand:InsertLineNumberAndCopy.InsertFileLineNumber",
+    "onCommand:InsertLineNumberAndCopy.CopyStartZero",
+    "onCommand:InsertLineNumberAndCopy.CopyStartOne",
     "onCommand:InsertLineNumberAndCopy.CopyFileLineNumer"
   ],
   "main": "./src/extension.js",
@@ -36,8 +40,24 @@
         "title": "Insert Line Number And Copy | Insert | start 0"
       },
       {
+        "command": "InsertLineNumberAndCopy.InsertStartOne",
+        "title": "Insert Line Number And Copy | Insert | start 1"
+      },
+      {
+        "command": "InsertLineNumberAndCopy.InsertFileLineNumer",
+        "title": "Insert Line Number And Copy | Insert | start File Line Number"
+      },
+      {
+        "command": "InsertLineNumberAndCopy.CopyStartZero",
+        "title": "Insert Line Number And Copy | Copy | start 0"
+      },
+      {
+        "command": "InsertLineNumberAndCopy.CopyStartOne",
+        "title": "Insert Line Number And Copy | Copy | start 1"
+      },
+      {
         "command": "InsertLineNumberAndCopy.CopyFileLineNumer",
-        "title": "Insert Line Number And Copy | Copy | start File Line Number "
+        "title": "Insert Line Number And Copy | Copy | start File Line Number Header FilePath"
       }
     ],
     "configuration": {}
