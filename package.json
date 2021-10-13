@@ -30,7 +30,7 @@
     "onCommand:InsertLineNumberAndCopy.InsertFileLineNumber",
     "onCommand:InsertLineNumberAndCopy.CopyStartZero",
     "onCommand:InsertLineNumberAndCopy.CopyStartOne",
-    "onCommand:InsertLineNumberAndCopy.CopyFileLineNumer"
+    "onCommand:InsertLineNumberAndCopy.CopyFileLineNumber"
   ],
   "main": "./src/extension.js",
   "contributes": {
@@ -44,7 +44,7 @@
         "title": "Insert Line Number And Copy | Insert | start 1"
       },
       {
-        "command": "InsertLineNumberAndCopy.InsertFileLineNumer",
+        "command": "InsertLineNumberAndCopy.InsertFileLineNumber",
         "title": "Insert Line Number And Copy | Insert | start File Line Number"
       },
       {
@@ -56,7 +56,7 @@
         "title": "Insert Line Number And Copy | Copy | start 1"
       },
       {
-        "command": "InsertLineNumberAndCopy.CopyFileLineNumer",
+        "command": "InsertLineNumberAndCopy.CopyFileLineNumber",
         "title": "Insert Line Number And Copy | Copy | start File Line Number Header FilePath"
       }
     ],

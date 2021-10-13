@@ -16,7 +16,7 @@ function activate(context) {
       vscode.window.showInformationMessage(`No editor is active`);
       return;
     }
-    console.log({editor});
+    // console.log({editor})
 
     const editorSelectionsLoop = (func) => {
       editor.selections.forEach((select) => {
@@ -119,8 +119,8 @@ function activate(context) {
         labelExcludeBlank = `${1} - ${lineCount - blankLineCount}`;
       break;
 
-      case `InsertFileLineNumer`:
-      case `CopyFileLineNumer`:
+      case `InsertFileLineNumber`:
+      case `CopyFileLineNumber`:
         labelIncludeBlank = `${select.start.line + 1} - ${select.end.line + 1}`;
         labelExcludeBlank = `${select.start.line + 1} - ${select.end.line + 1}`;
       break;
@@ -149,7 +149,7 @@ function activate(context) {
       editor.edit((ed) => {
 
         const editorSelectionsLoopInsertLineNumber = (option, func) => {
-          editorSelectionsLoop((range, text) => {
+          editorSelectionsLoop((range, text, select) => {
             const lines = text.split(`\n`);
             const newLines = [];
             let minIndent = 0;
@@ -192,11 +192,11 @@ function activate(context) {
               if (option.isIncrementBlankLine) {
                 lineNumber = initLineNumber + i;
                 newLines.push(
-                  `${lineNumber.toString().padStart(maxLength)}: ${line}`
+                  `${lineNumber.toString().padStart(maxLength)}:${line}`
                 );
               } else {
                 newLines.push(
-                  `${lineNumber.toString().padStart(maxLength)}: ${line}`
+                  `${lineNumber.toString().padStart(maxLength)}:${line}`
                 );
                 lineNumber += 1;
               }
@@ -252,7 +252,7 @@ function activate(context) {
             insertLineNumber({ isIncrementBlankLine: false, initialValue: 'One', });
             break;
 
-          case `InsertFileLineNumer`:
+          case `InsertFileLineNumber`:
             insertLineNumber({ isIncrementBlankLine: true, initialValue: 'LineNumber', });
             break;
 
@@ -264,7 +264,7 @@ function activate(context) {
             insertCopyLineNumber({ isIncrementBlankLine: false, initialValue: 'One', });
             break;
 
-          case `CopyFileLineNumer`:
+          case `CopyFileLineNumber`:
             insertCopyLineNumber({ isIncrementBlankLine: true, initialValue: 'LineNumber', });
             break;
 
@@ -288,8 +288,8 @@ function activate(context) {
   ));
 
   context.subscriptions.push(vscode.commands.registerCommand(
-    `InsertLineNumberAndCopy.InsertFileLineNumer`,
-    () => { extensionMain(`InsertFileLineNumer`); }
+    `InsertLineNumberAndCopy.InsertFileLineNumber`,
+    () => { extensionMain(`InsertFileLineNumber`); }
   ));
 
   context.subscriptions.push(vscode.commands.registerCommand(
@@ -303,8 +303,8 @@ function activate(context) {
   ));
 
   context.subscriptions.push(vscode.commands.registerCommand(
-    `InsertLineNumberAndCopy.CopyFileLineNumer`,
-    () => { extensionMain(`CopyFileLineNumer`); }
+    `InsertLineNumberAndCopy.CopyFileLineNumber`,
+    () => { extensionMain(`CopyFileLineNumber`); }
   ));
 }
 
