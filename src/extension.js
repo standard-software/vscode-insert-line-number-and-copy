@@ -1,5 +1,4 @@
 const vscode = require("vscode");
-const clipboardy = require("clipboardy");
 const {
   _deleteFirst,
   _trimFirst,
@@ -192,11 +191,11 @@ function activate(context) {
               if (option.isIncrementBlankLine) {
                 lineNumber = initLineNumber + i;
                 newLines.push(
-                  `${lineNumber.toString().padStart(maxLength)}:${line}`
+                  `${lineNumber.toString().padStart(maxLength)}: ${line}`
                 );
               } else {
                 newLines.push(
-                  `${lineNumber.toString().padStart(maxLength)}:${line}`
+                  `${lineNumber.toString().padStart(maxLength)}: ${line}`
                 );
                 lineNumber += 1;
               }
@@ -240,7 +239,7 @@ function activate(context) {
               copyText += newLines.join("\n") + linebreak;
             }
           );
-          clipboardy.writeSync(copyText);
+          vscode.env.clipboard.writeText(copyText);
         }
 
         switch (commandName) {

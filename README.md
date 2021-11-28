@@ -41,6 +41,12 @@ Released under the [MIT License][license].
 
 ## Version
 
+### 1.1.0
+2021/11/28(Sun)
+- Change the clipboard implementation
+  - Discard clipboardy
+  - use vscode.env.clipboard.writeTex
+
 ### 1.0.0
 2021/10/13(Wed)
 - publish
