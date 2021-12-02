@@ -7,6 +7,15 @@
 
 This extension inserts line numbers and copies them to the clipboard.
 
+## Information
+
+This extension has been deprecated and will be replaced by the following plugin.
+
+Please use the following
+
+- vscode-line-number
+https://marketplace.visualstudio.com/items?itemName=SatoshiYamamoto.vscode-line-number  
+
 ## Install
 
 Search for "Insert Line Number And Copy" in the Marketplace  
@@ -40,6 +49,9 @@ Released under the [MIT License][license].
 [license]: https://github.com/standard-software/vscode-insert-line-number-and-copy/blob/master/LICENSE
 
 ## Version
+
+### 1.1.1
+- update README
 
 ### 1.1.0
 2021/11/28(Sun)
