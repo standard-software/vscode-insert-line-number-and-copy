@@ -51,6 +51,7 @@ Released under the [MIT License][license].
 ## Version
 
 ### 1.1.1
+2021/12/02(Thu)
 - update README
 
 ### 1.1.0
